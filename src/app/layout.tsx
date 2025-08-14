@@ -2,8 +2,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "@turnkey/react-wallet-kit/dist/styles.css";
-
-import Image from "next/image";
 import { TurnkeyLogoSVG } from "@/components/Svg";
 import {
   CreateSubOrgParams,
@@ -66,7 +64,17 @@ const turnkeyConfig: TurnkeyProviderConfig = {
       },
     },
   },
+
+  // Disable external wallets
+  walletConfig: {
+    features: {
+      auth: true,
+      connecting: false,
+    },
+    chains: {},
+  },
 };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -95,46 +103,16 @@ export default function RootLayout({
         <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center h-20 z-50">
           <a
             className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://docs.turnkey.com/sdks/react"
+            href="https://turnkey-0e7c1f5b-amir-wallet-kit-docs.mintlify.app/sdks/react/index" // TODO: Replace this with the real docs link when available
             target="_blank"
             rel="noopener noreferrer"
           >
             <TurnkeyLogoSVG className="w-6 h-6" />
             Turnkey{" "}
             <code className="bg-gray-900 rounded p-0.5 text-sm">
-              sdk-react
+              react-wallet-kit
             </code>{" "}
             docs
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://docs.turnkey.com/category/code-examples"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/window.svg"
-              alt="Window icon"
-              width={16}
-              height={16}
-            />
-            Examples
-          </a>
-          <a
-            className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-            href="https://docs.turnkey.com/getting-started/embedded-wallet-quickstart"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              aria-hidden
-              src="/globe.svg"
-              alt="Globe icon"
-              width={16}
-              height={16}
-            />
-            Turnkey Quickstart Guide
           </a>
         </footer>
       </body>

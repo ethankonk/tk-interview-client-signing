@@ -1,88 +1,28 @@
 "use client";
 
-import {
-  AuthState,
-  ClientState,
-  useModal,
-  useTurnkey,
-  Wallet,
-  WalletSource,
-} from "@turnkey/react-wallet-kit";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { v1WalletAccount } from "@turnkey/sdk-types";
+import { AuthState, useTurnkey } from "@turnkey/react-wallet-kit";
 import { EthereumSVG } from "@/components/Svg";
-import { signMessageWithPrivateKey, truncateAddress } from "@/utils";
-import { generateP256KeyPair, decryptExportBundle } from "@turnkey/crypto";
+import { truncateAddress } from "@/utils";
 
 export default function Home() {
-  const router = useRouter();
-  const { handleLogin, clientState, authState, wallets, httpClient, session } = useTurnkey();
-  const { pushPage } = useModal();
+  const { handleLogin, authState, wallets, session, httpClient } = useTurnkey();
 
-  const [activeAccount, setActiveAccount] = useState<
-    v1WalletAccount | undefined
-  >();
-  const [activeWallet, setActiveWallet] = useState<Wallet | undefined>();
+  // ******************************
+  // Some helper variables for you:
 
-  const exportWalletAccount = async (address: string) => {
-    const keyPair = generateP256KeyPair();
-        const res = await httpClient?.exportWalletAccount({
-          address,
-          targetPublicKey: keyPair.publicKeyUncompressed,
-        });
-    if (res) {
-      return {exportBundle: res.exportBundle, keyPair};
-    } else {
-      console.error("Failed to export wallet account");
-      return null;
-    }
-  }
+  // The first wallet in the suborg.
+  // Wallets are fetched automatically when the user logs in. You can grab these wallets from the `useTurnkey` hook.
+  const targetWallet = wallets[0];
 
-  useEffect(() => {
-    if (
-      authState === AuthState.Unauthenticated &&
-      clientState === ClientState.Ready
-    ) {
-      handleLogin();
-    }
-  }, [clientState]);
+  // The first wallet account of the first wallet.
+  // A wallet account is a derrived address from the wallet's seedphrase.
+  // This is an Ethereum account.
+  const targetAccount = targetWallet?.accounts[0];
 
-  useEffect(() => {
-    if (wallets.length > 0) {
-      const embeddedWallet = wallets.find(
-        (wallet) => wallet.source === WalletSource.Embedded
-      );
+  // The organization ID of the suborg the user is logged into. Some functions will ask for an organization ID, so you can use this.
+  const suborgId = session?.organizationId;
 
-      if (embeddedWallet) {
-        setActiveAccount(embeddedWallet.accounts[0]);
-        setActiveWallet(embeddedWallet);
-
-       exportWalletAccount(embeddedWallet.accounts[0].address).then((res) => {
-        if (!res) {
-          console.error("Failed to export wallet account");
-          return;
-        }
-        decryptExportBundle({exportBundle: res.exportBundle, organizationId: session?.organizationId!, embeddedKey: res.keyPair.privateKey, returnMnemonic: false}).then((privateKey) => {
-          console.log("Decrypted Private Key:", privateKey);
-          signMessageWithPrivateKey(privateKey, "Hello, Turnkey!").then((signature) => {
-            console.log("Signature:", signature);
-            pushPage({
-              key: "Sign Message",
-              content: (
-                <div className="flex flex-col items-center gap-4">
-                  <p>Message: Hello, Turnkey!</p>
-                  <p>Signature: {signature.signature}</p>
-                </div>
-              ),
-            });
-          });
-        });
-      });
-      }
-    }
-  }, [wallets]);
-
+  // *****************************
 
   return (
     <>
@@ -101,12 +41,14 @@ export default function Home() {
         <div className="font-sans flex flex-col items-center justify-center gap-6 bg-neutral-800 p-6 rounded-lg">
           <div className="flex items-center justify-between w-full">
             <h1>
-              {activeWallet ? activeWallet.walletName : "No Wallet Connected"}
+              {targetWallet ? targetWallet.walletName : "No Wallet Connected"}
             </h1>
             <div className="flex items-center gap-2">
               <EthereumSVG className="w-6 h-6" />
               <span>
-                {activeAccount ? truncateAddress(activeAccount.address) : "No Account Selected"}
+                {targetAccount
+                  ? truncateAddress(targetAccount.address)
+                  : "No Account Selected"}
               </span>
             </div>
           </div>
