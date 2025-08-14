@@ -1,11 +1,12 @@
 "use client";
 
-import { AuthState, useTurnkey } from "@turnkey/react-wallet-kit";
+import { AuthState, ClientState, useTurnkey } from "@turnkey/react-wallet-kit";
 import { EthereumSVG } from "@/components/Svg";
 import { truncateAddress } from "@/utils";
 
 export default function Home() {
-  const { handleLogin, authState, wallets, session, httpClient } = useTurnkey();
+  const { handleLogin, authState, clientState, wallets, session, httpClient } =
+    useTurnkey();
 
   // ******************************
   // Some helper variables for you:
@@ -22,11 +23,17 @@ export default function Home() {
   // The organization ID of the suborg the user is logged into. Some functions will ask for an organization ID, so you can use this.
   const suborgId = session?.organizationId;
 
+  // Is the Turnkey SDK ready to use?
+  const isReady = clientState === ClientState.Ready;
+
+  // Is the user authenticated?
+  const isAuthenticated = authState === AuthState.Authenticated;
+
   // *****************************
 
   return (
     <>
-      {authState === AuthState.Unauthenticated ? (
+      {!isAuthenticated ? (
         <div className="font-sans flex items-center justify-center h-full w-full">
           <main className="flex flex-col gap-[32px] items-center sm:items-start w-full h-full">
             <button
